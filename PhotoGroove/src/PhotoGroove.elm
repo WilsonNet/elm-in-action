@@ -4,19 +4,22 @@ import Array exposing (Array)
 import Browser
 import Html exposing (Html, button, div, h1, img, input, label, small, text)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onClick, onInput)
+import Random
 
 
 
 -- MAIN
 
 
+main: Program () Model Msg
 main =
-    Browser.sandbox
-        { init = initialModel
+    Browser.element
+        { init = \flags -> ( initialModel,
+        Cmd.none )
         , view = view
         , update = update
+        ,subscriptions = \model -> Sub.none
         }
 
 
@@ -58,17 +61,20 @@ type Msg =
     ClickedPhoto String
     | ClickedSize ThumbnailSize
     | ClickedSurpriseMe
+    | GotSelectedIndex Int
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickedPhoto url ->
-            { model | selectedUrl = url }
+            ({ model | selectedUrl = url }, Cmd.none)
         ClickedSurpriseMe ->
-            { model | selectedUrl = "2.jpeg" }
+            ( model, Random.generate GotSelectedIndex randomPhotoPicker) 
         ClickedSize size->
-            { model | choosenSize = size  }
+            ({ model | choosenSize = size }, Cmd.none)
+        GotSelectedIndex index ->
+            ({ model | selectedUrl =  getPhotoUrl index }, Cmd.none)
 
 
 
@@ -140,3 +146,7 @@ getPhotoUrl index =
             photo.url
         Nothing ->
             ""
+
+randomPhotoPicker : Random.Generator Int
+randomPhotoPicker =
+    Random.int 0 (Array.length photoArray - 1)
