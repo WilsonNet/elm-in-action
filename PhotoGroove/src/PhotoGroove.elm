@@ -12,14 +12,17 @@ import Random
 -- MAIN
 
 
-main: Program () Model Msg
+main : Program () Model Msg
 main =
     Browser.element
-        { init = \flags -> ( initialModel,
-        Cmd.none )
+        { init =
+            \flags ->
+                ( initialModel
+                , Cmd.none
+                )
         , view = view
         , update = update
-        ,subscriptions = \model -> Sub.none
+        , subscriptions = \model -> Sub.none
         }
 
 
@@ -41,6 +44,12 @@ type alias Model =
     { photos : List Photo, selectedUrl : String, choosenSize : ThumbnailSize }
 
 
+type Status
+    = Loading
+    | Loaded (List Photo) String
+    | Errored String
+
+
 initialModel : Model
 initialModel =
     { photos =
@@ -57,8 +66,8 @@ initialModel =
 -- UPDATE
 
 
-type Msg =
-    ClickedPhoto String
+type Msg
+    = ClickedPhoto String
     | ClickedSize ThumbnailSize
     | ClickedSurpriseMe
     | GotSelectedIndex Int
@@ -68,13 +77,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickedPhoto url ->
-            ({ model | selectedUrl = url }, Cmd.none)
+            ( { model | selectedUrl = url }, Cmd.none )
+
         ClickedSurpriseMe ->
-            ( model, Random.generate GotSelectedIndex randomPhotoPicker) 
-        ClickedSize size->
-            ({ model | choosenSize = size }, Cmd.none)
+            ( model, Random.generate GotSelectedIndex randomPhotoPicker )
+
+        ClickedSize size ->
+            ( { model | choosenSize = size }, Cmd.none )
+
         GotSelectedIndex index ->
-            ({ model | selectedUrl =  getPhotoUrl index }, Cmd.none)
+            ( { model | selectedUrl = getPhotoUrl index }, Cmd.none )
 
 
 
@@ -86,7 +98,7 @@ view model =
     div [ class "container" ]
         [ h1 [] [ text "Photos Grooves" ]
         , button
-            [ onClick  ClickedSurpriseMe  ]
+            [ onClick ClickedSurpriseMe ]
             [ text "Surpresinha!" ]
         , div [ id "choose-size" ]
             (List.map viewSizeChooser [ Small, Medium, Large ])
@@ -139,13 +151,16 @@ urlPrefix : String
 urlPrefix =
     "http://elm-in-action.com/"
 
-getPhotoUrl: Int -> String
+
+getPhotoUrl : Int -> String
 getPhotoUrl index =
     case Array.get index photoArray of
         Just photo ->
             photo.url
+
         Nothing ->
             ""
+
 
 randomPhotoPicker : Random.Generator Int
 randomPhotoPicker =
