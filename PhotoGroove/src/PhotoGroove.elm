@@ -1,6 +1,5 @@
 module PhotoGroove exposing (main)
 
-import Array exposing (Array)
 import Browser
 import Html exposing (Html, button, div, h1, img, input, label, small, text)
 import Html.Attributes exposing (..)
@@ -79,9 +78,12 @@ update msg model =
         ClickedSurpriseMe ->
             case model.status of
                 Loaded (firstPhoto :: otherPhotos) _ ->
-                    ( model
-                    , Random.generate GotRandomPhoto (Random.uniform firstPhoto otherPhotos)
-                    )
+                    Random.uniform firstPhoto otherPhotos
+                        |> Random.generate GotRandomPhoto
+                        |> Tuple.pair model
+
+                Loaded [] _ ->
+                    ( model, Cmd.none )
 
                 Loading ->
                     ( model, Cmd.none )
@@ -108,7 +110,7 @@ view model =
                 viewLoaded photos selectedUrl model.chosenSize
 
             Loading ->
-                []
+                [ h1 [] [ text "Loading..." ] ]
 
             Errored errorMessage ->
                 [ text ("Error: " ++ errorMessage) ]
@@ -116,20 +118,19 @@ view model =
 
 viewLoaded : List Photo -> String -> ThumbnailSize -> List (Html Msg)
 viewLoaded photos selectedUrl chosenSize =
-    div [ class "container" ]
-        [ h1 [] [ text "Photos Grooves" ]
-        , button
-            [ onClick ClickedSurpriseMe ]
-            [ text "Surpresinha!" ]
-        , div [ id "choose-size" ]
-            (List.map viewSizeChooser [ Small, Medium, Large ])
-        , div [ id "thumbnails", class (sizeToString chosenSize) ] (List.map viewThumbnail selectedUrl photos)
-        , img
-            [ class "large"
-            , src (urlPrefix ++ "large/" ++ selectedUrl)
-            ]
-            []
+    [ h1 [] [ text "Photos Grooves" ]
+    , button
+        [ onClick ClickedSurpriseMe ]
+        [ text "Surpresinha!" ]
+    , div [ id "choose-size" ]
+        (List.map viewSizeChooser [ Small, Medium, Large ])
+    , div [ id "thumbnails", class (sizeToString chosenSize) ] (List.map (viewThumbnail selectedUrl) photos)
+    , img
+        [ class "large"
+        , src (urlPrefix ++ "large/" ++ selectedUrl)
         ]
+        []
+    ]
 
 
 selectUrl : String -> Status -> Status
@@ -139,7 +140,7 @@ selectUrl url status =
             Loaded photos url
 
         Loading ->
-            status []
+            status
 
         Errored errorMessage ->
             status
