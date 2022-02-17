@@ -5234,6 +5234,9 @@ var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$PhotoGroove$Errored = function (a) {
+	return {$: 'Errored', a: a};
+};
 var $author$project$PhotoGroove$GotRandomPhoto = function (a) {
 	return {$: 'GotRandomPhoto', a: a};
 };
@@ -5491,7 +5494,7 @@ var $author$project$PhotoGroove$update = F2(
 						model,
 						{chosenSize: size}),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 'GotRandomPhoto':
 				var photo = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -5500,6 +5503,27 @@ var $author$project$PhotoGroove$update = F2(
 							status: A2($author$project$PhotoGroove$selectUrl, photo.url, model.status)
 						}),
 					$elm$core$Platform$Cmd$none);
+			default:
+				var result = msg.a;
+				if (result.$ === 'Ok') {
+					var responseStr = result.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								status: $author$project$PhotoGroove$Errored('Server Error!')
+							}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					var httpError = result.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								status: $author$project$PhotoGroove$Errored('Server Error!')
+							}),
+						$elm$core$Platform$Cmd$none);
+				}
 		}
 	});
 var $elm$json$Json$Encode$string = _Json_wrap;
